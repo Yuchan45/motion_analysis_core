@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: motion_analysis
+      POSTGRES_USER: motion
+      POSTGRES_PASSWORD: motion
+    ports:
+      - "5432:5432"
+    volumes:
+      - motion_analysis_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U motion -d motion_analysis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  motion_analysis_pg:
