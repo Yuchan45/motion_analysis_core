@@ -1,0 +1,17 @@
+model Analysis {
+  id                String         @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  videoId           String         @db.Uuid
+  type              String
+  version           String
+  status            AnalysisStatus @default(PENDING)
+  analysisDataKey   String?        @unique
+  processedVideoKey String?        @unique
+  editorState       Json           @default("{\"corrections\":[],\"slowMotionSegments\":[]}")
+  createdAt         DateTime       @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  error             String?
+  video             Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId, createdAt])
+}

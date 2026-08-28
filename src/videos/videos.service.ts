@@ -25,16 +25,15 @@ export class VideosService {
     if (!file) throw new BadRequestException('A video file is required.');
     const extension = extname(file.originalname).toLowerCase();
     this.validateVideo(file, extension);
-    const id = randomUUID();
-    const storageKey = `users/${userId}/videos/${id}/original${extension}`;
+    const storageId = randomUUID();
+    const storageKey = `users/${userId}/videos/${storageId}/original${extension}`;
     const title = dto.title?.trim() || parse(file.originalname).name.slice(0, 160) || 'Untitled video';
     const record = await this.videos.create({
-      id,
       userId,
       title,
       originalFilename: file.originalname,
       mimeType: file.mimetype,
-      sizeBytes: file.size,
+      sizeBytes: BigInt(file.size),
       storageKey,
       status: VideoStatus.UPLOADING,
     });
@@ -43,7 +42,7 @@ export class VideosService {
       return this.present(await this.videos.updateStatus(record.id, VideoStatus.READY));
     } catch (error) {
       await this.videos.updateStatus(record.id, VideoStatus.FAILED);
-      await this.storage.deletePrefix(`users/${userId}/videos/${id}`);
+      await this.storage.deletePrefix(`users/${userId}/videos/${storageId}`);
       throw error;
     }
   }
@@ -91,13 +90,13 @@ export class VideosService {
     if (!validSignature) throw new UnsupportedMediaTypeException('The uploaded file signature does not match its video format.');
   }
 
-  present(video: { id: string; title: string; originalFilename: string; mimeType: string; sizeBytes: number; status: VideoStatus; createdAt: Date; updatedAt: Date }) {
+  present(video: { id: string; title: string; originalFilename: string; mimeType: string; sizeBytes: bigint; status: VideoStatus; createdAt: Date; updatedAt: Date }) {
     return {
       id: video.id,
       title: video.title,
       originalFilename: video.originalFilename,
       mimeType: video.mimeType,
-      sizeBytes: video.sizeBytes,
+      sizeBytes: Number(video.sizeBytes),
       status: video.status,
       createdAt: video.createdAt,
       updatedAt: video.updatedAt,

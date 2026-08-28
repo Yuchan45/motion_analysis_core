@@ -1,0 +1,19 @@
+enum VideoStatus {
+  UPLOADING
+  READY
+  FAILED
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ProfileImageSourceType {
+  MANAGED
+  EXTERNAL
+  PROVIDER
+  GENERATED
+}

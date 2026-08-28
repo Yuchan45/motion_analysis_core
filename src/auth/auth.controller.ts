@@ -1,23 +1,25 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { CredentialsDto } from './dto/credentials.dto';
+import { LoginDto, RegisterDto } from './dto/credentials.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService, private readonly config: ConfigService) {}
 
   @Post('register')
-  async register(@Body() dto: CredentialsDto, @Res({ passthrough: true }) response: Response) {
-    const session = await this.auth.register(dto);
+  @UseInterceptors(FileInterceptor('avatar', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  async register(@Body() dto: RegisterDto, @UploadedFile() file: Express.Multer.File | undefined, @Res({ passthrough: true }) response: Response) {
+    const session = await this.auth.register(dto, file);
     this.setCookie(response, session.token);
     return session.user;
   }
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() dto: CredentialsDto, @Res({ passthrough: true }) response: Response) {
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) response: Response) {
     const session = await this.auth.login(dto);
     this.setCookie(response, session.token);
     return session.user;

@@ -6,8 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalysesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(id: string, videoId: string, type: string) {
-    return this.prisma.analysis.create({ data: { id, videoId, type, version: 'v1' } });
+  create(videoId: string, type: string) {
+    return this.prisma.analysis.create({ data: { videoId, type, version: 'v1' } });
   }
 
   findOwned(id: string, userId: string) {

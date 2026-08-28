@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Video, VideoStatus } from '@prisma/client';
+import { Prisma, VideoStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class VideosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: Omit<Video, 'createdAt' | 'updatedAt'>) {
+  create(data: Prisma.VideoUncheckedCreateInput) {
     return this.prisma.video.create({ data });
   }
 

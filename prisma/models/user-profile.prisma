@@ -1,0 +1,11 @@
+model UserProfile {
+  id             String        @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  userId         String        @unique @db.Uuid
+  displayName    String?
+  bio            String?
+  profileImageId String?       @unique @db.Uuid
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileImage   ProfileImage? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
+}

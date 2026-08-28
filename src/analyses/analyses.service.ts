@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { AnalysisStatus, Prisma, VideoStatus } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
 import { MOTION_PROCESSING_SERVICE, MotionProcessingService } from '../processing/motion-processing.service';
 import { STORAGE_SERVICE, StorageService } from '../storage/storage.service';
 import { VideosService } from '../videos/videos.service';
@@ -24,9 +23,9 @@ export class AnalysesService {
   async create(videoId: string, userId: string, type: string) {
     const video = await this.videos.getOwned(videoId, userId);
     if (video.status !== VideoStatus.READY) throw new BadRequestException('Video is not ready for analysis.');
-    const id = randomUUID();
+    const analysis = await this.analyses.create(videoId, type);
+    const id = analysis.id;
     const dataKey = `users/${userId}/videos/${videoId}/analyses/${id}/analysis.json`;
-    await this.analyses.create(id, videoId, type);
     await this.analyses.markProcessing(id);
     try {
       await this.processing.analyze({ inputKey: video.storageKey, analysisOutputKey: dataKey });
