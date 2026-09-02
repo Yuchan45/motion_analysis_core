@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsIn, IsString, Matches, MinLength, ValidateIf } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, Matches, MaxLength, MinLength, ValidateIf } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -23,6 +23,33 @@ export class RegisterDto extends LoginDto {
   diceBearStyle?: string;
 
   @ValidateIf((dto: RegisterDto) => dto.avatarSource === 'generated')
+  @IsString()
+  @Matches(/^[a-zA-Z0-9_-]{1,64}$/)
+  diceBearSeed?: string;
+}
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  @IsString()
+  @MaxLength(80)
+  displayName?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  @IsString()
+  @MaxLength(280)
+  bio?: string;
+
+  @IsOptional()
+  @IsIn(['none', 'upload', 'generated'])
+  avatarSource?: 'none' | 'upload' | 'generated';
+
+  @ValidateIf((dto: UpdateProfileDto) => dto.avatarSource === 'generated')
+  @IsIn(['waves', 'stack', 'stripes', 'initial-face', 'patchwork'])
+  diceBearStyle?: string;
+
+  @ValidateIf((dto: UpdateProfileDto) => dto.avatarSource === 'generated')
   @IsString()
   @Matches(/^[a-zA-Z0-9_-]{1,64}$/)
   diceBearSeed?: string;

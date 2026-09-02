@@ -84,6 +84,37 @@ export class UsersRepository {
     return this.prisma.profileImage.update({ where: { id }, data: { storageKey } });
   }
 
+  createProfileImage(avatar: RegistrationAvatar) {
+    return this.prisma.profileImage.create({ data: avatar });
+  }
+
+  deleteProfileImage(id: string) {
+    return this.prisma.profileImage.delete({ where: { id } });
+  }
+
+  async updateOwnProfile(input: { userId: string; displayName?: string; bio?: string; replaceAvatar: boolean; newImageId?: string }) {
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.userProfile.findUnique({ where: { userId: input.userId }, include: { profileImage: true } });
+      if (!profile) throw new Error('User profile is not configured.');
+
+      await tx.userProfile.update({
+        where: { userId: input.userId },
+        data: {
+          ...(input.displayName !== undefined ? { displayName: input.displayName } : {}),
+          ...(input.bio !== undefined ? { bio: input.bio } : {}),
+          ...(input.replaceAvatar ? {
+            profileImage: input.newImageId ? { connect: { id: input.newImageId } } : { disconnect: true },
+          } : {}),
+        },
+      });
+
+      if (input.replaceAvatar && profile.profileImageId) await tx.profileImage.delete({ where: { id: profile.profileImageId } });
+      const user = await tx.user.findUnique({ where: { id: input.userId }, ...userWithProfile });
+      if (!user) throw new Error('User not found.');
+      return { user, previousStorageKey: input.replaceAvatar ? profile.profileImage?.storageKey : undefined };
+    });
+  }
+
   async deleteRegisteredUser(userId: string, imageId?: string) {
     await this.prisma.$transaction(async (tx) => {
       await tx.user.delete({ where: { id: userId } });
